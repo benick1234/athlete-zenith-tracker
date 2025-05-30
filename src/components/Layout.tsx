@@ -12,7 +12,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   
   const getPageTitle = () => {
     switch (location.pathname) {
@@ -39,6 +39,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     }
   };
 
+  // Get user initials from email
+  const getInitials = (email: string) => {
+    return email.substring(0, 2).toUpperCase();
+  };
+
+  // Get user name from email (part before @)
+  const getUserName = (email: string) => {
+    return email.split('@')[0];
+  };
+
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
       {/* Top Bar */}
@@ -55,7 +65,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <LogOut size={16} />
             </Button>
             <div className="w-8 h-8 rounded-full bg-gradient-to-r from-electric to-neon flex items-center justify-center">
-              <span className="text-black font-bold text-sm">JD</span>
+              <span className="text-black font-bold text-sm">
+                {user?.email ? getInitials(user.email) : 'FB'}
+              </span>
             </div>
           </div>
         </div>
