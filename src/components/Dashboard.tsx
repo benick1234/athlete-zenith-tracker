@@ -12,7 +12,7 @@ const Dashboard = () => {
       target: '2.5L',
       progress: 48,
       icon: Droplets,
-      color: 'electric',
+      color: 'electric' as const,
     },
     {
       title: 'Calories',
@@ -20,7 +20,7 @@ const Dashboard = () => {
       target: '2,200',
       progress: 84,
       icon: Zap,
-      color: 'neon',
+      color: 'neon' as const,
     },
     {
       title: 'Steps',
@@ -28,7 +28,7 @@ const Dashboard = () => {
       target: '10,000',
       progress: 84,
       icon: Activity,
-      color: 'electric',
+      color: 'electric' as const,
     },
   ];
 
