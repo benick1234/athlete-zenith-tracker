@@ -1,12 +1,11 @@
-
 import React, { useState } from 'react';
 import { Droplets, Utensils, Activity, Plus } from 'lucide-react';
 import ProgressRing from './ProgressRing';
+import { useDailyTracking } from '@/hooks/useDailyTracking';
 
 const Wellness = () => {
   const [activeTab, setActiveTab] = useState('water');
-  const [waterIntake, setWaterIntake] = useState(1200);
-  const [dailyGoal] = useState(2500);
+  const { trackingData, goals, updateTrackingData } = useDailyTracking();
 
   const tabs = [
     { id: 'water', label: 'Water', icon: Droplets },
@@ -17,7 +16,8 @@ const Wellness = () => {
   const quickAddAmounts = [250, 500, 750, 1000];
 
   const handleAddWater = (amount: number) => {
-    setWaterIntake(prev => Math.min(prev + amount, dailyGoal));
+    const newAmount = Math.min(trackingData.water_intake + amount, goals.daily_water_goal);
+    updateTrackingData('water_intake', newAmount);
   };
 
   const macros = {
@@ -32,13 +32,13 @@ const Wellness = () => {
       <div className="glass rounded-2xl p-6 text-center">
         <div className="flex justify-center mb-4">
           <ProgressRing 
-            progress={(waterIntake / dailyGoal) * 100} 
+            progress={(trackingData.water_intake / goals.daily_water_goal) * 100} 
             color="electric" 
             size={120} 
           />
         </div>
-        <h3 className="text-2xl font-bold mb-2">{waterIntake}ml</h3>
-        <p className="text-gray-400">of {dailyGoal}ml daily goal</p>
+        <h3 className="text-2xl font-bold mb-2">{trackingData.water_intake}ml</h3>
+        <p className="text-gray-400">of {goals.daily_water_goal}ml daily goal</p>
       </div>
 
       {/* Quick Add Buttons */}
@@ -62,6 +62,22 @@ const Wellness = () => {
 
   const renderNutritionTab = () => (
     <div className="space-y-6">
+      {/* Calories Progress */}
+      <div className="glass rounded-2xl p-6">
+        <h4 className="font-semibold mb-4">Today's Calories</h4>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <p className="text-3xl font-bold">{trackingData.calories_consumed}</p>
+            <p className="text-gray-400 text-sm">of {goals.daily_calorie_goal} goal</p>
+          </div>
+          <ProgressRing 
+            progress={(trackingData.calories_consumed / goals.daily_calorie_goal) * 100} 
+            color="neon" 
+            size={80} 
+          />
+        </div>
+      </div>
+
       {/* Macros */}
       <div className="glass rounded-2xl p-6">
         <h4 className="font-semibold mb-4">Today's Macros</h4>
@@ -114,10 +130,14 @@ const Wellness = () => {
         </div>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-3xl font-bold">8,432</p>
-            <p className="text-gray-400 text-sm">of 10,000 goal</p>
+            <p className="text-3xl font-bold">{trackingData.steps_taken.toLocaleString()}</p>
+            <p className="text-gray-400 text-sm">of {goals.daily_steps_goal.toLocaleString()} goal</p>
           </div>
-          <ProgressRing progress={84} color="electric" size={80} />
+          <ProgressRing 
+            progress={(trackingData.steps_taken / goals.daily_steps_goal) * 100} 
+            color="electric" 
+            size={80} 
+          />
         </div>
       </div>
 
@@ -131,7 +151,7 @@ const Wellness = () => {
           </div>
           <div className="flex justify-between">
             <span>Total Calories</span>
-            <span className="font-semibold">1,850 cal</span>
+            <span className="font-semibold">{trackingData.calories_consumed} cal</span>
           </div>
         </div>
       </div>

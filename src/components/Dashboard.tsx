@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Droplets, Zap, Activity, Calendar, Sun, Cloud } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import StatCard from './StatCard';
 import ProgressRing from './ProgressRing';
 import { Loader2 } from 'lucide-react';
+import { useDailyTracking } from '@/hooks/useDailyTracking';
 
 interface UserProfile {
   age: number | null;
@@ -19,6 +19,7 @@ const Dashboard = () => {
   const { user } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const { trackingData, goals, loading: trackingLoading } = useDailyTracking();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -62,25 +63,25 @@ const Dashboard = () => {
   const stats = [
     {
       title: 'Water Intake',
-      value: '1.2L',
-      target: '2.5L',
-      progress: 48,
+      value: `${(trackingData.water_intake / 1000).toFixed(1)}L`,
+      target: `${(goals.daily_water_goal / 1000).toFixed(1)}L`,
+      progress: Math.round((trackingData.water_intake / goals.daily_water_goal) * 100),
       icon: Droplets,
       color: 'electric' as const,
     },
     {
       title: 'Calories',
-      value: '1,850',
-      target: '2,200',
-      progress: 84,
+      value: trackingData.calories_consumed.toLocaleString(),
+      target: goals.daily_calorie_goal.toLocaleString(),
+      progress: Math.round((trackingData.calories_consumed / goals.daily_calorie_goal) * 100),
       icon: Zap,
       color: 'neon' as const,
     },
     {
       title: 'Steps',
-      value: '8,432',
-      target: '10,000',
-      progress: 84,
+      value: trackingData.steps_taken.toLocaleString(),
+      target: goals.daily_steps_goal.toLocaleString(),
+      progress: Math.round((trackingData.steps_taken / goals.daily_steps_goal) * 100),
       icon: Activity,
       color: 'electric' as const,
     },
@@ -92,7 +93,7 @@ const Dashboard = () => {
     { name: 'Strength Training', duration: '60 min', type: 'Gym', date: '2 days ago' },
   ];
 
-  if (loading) {
+  if (loading || trackingLoading) {
     return (
       <div className="p-6 flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-electric" />

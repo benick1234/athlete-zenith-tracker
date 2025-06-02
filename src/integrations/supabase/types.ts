@@ -9,6 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      daily_tracking: {
+        Row: {
+          calories_consumed: number | null
+          created_at: string
+          date: string
+          id: string
+          steps_taken: number | null
+          updated_at: string
+          user_id: string
+          water_intake: number | null
+        }
+        Insert: {
+          calories_consumed?: number | null
+          created_at?: string
+          date?: string
+          id?: string
+          steps_taken?: number | null
+          updated_at?: string
+          user_id: string
+          water_intake?: number | null
+        }
+        Update: {
+          calories_consumed?: number | null
+          created_at?: string
+          date?: string
+          id?: string
+          steps_taken?: number | null
+          updated_at?: string
+          user_id?: string
+          water_intake?: number | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           age: number | null
@@ -43,6 +76,36 @@ export type Database = {
           id?: string
           onboarding_completed?: boolean | null
           religion?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_goals: {
+        Row: {
+          created_at: string
+          daily_calorie_goal: number | null
+          daily_steps_goal: number | null
+          daily_water_goal: number | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          daily_calorie_goal?: number | null
+          daily_steps_goal?: number | null
+          daily_water_goal?: number | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          daily_calorie_goal?: number | null
+          daily_steps_goal?: number | null
+          daily_water_goal?: number | null
+          id?: string
           updated_at?: string
           user_id?: string
         }
