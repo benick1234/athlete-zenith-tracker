@@ -3,9 +3,12 @@ import React, { useState } from 'react';
 import { Play, Clock, Zap, CheckCircle } from 'lucide-react';
 import { useWorkouts } from '@/hooks/useWorkouts';
 import { useToast } from '@/hooks/use-toast';
+import WorkoutTimer from './WorkoutTimer';
 
 const Training = () => {
   const [activeTab, setActiveTab] = useState('running');
+  const [activeWorkout, setActiveWorkout] = useState<any>(null);
+  const [currentWorkoutId, setCurrentWorkoutId] = useState<string | null>(null);
   const { createWorkout, completeWorkout } = useWorkouts();
   const { toast } = useToast();
 
@@ -68,19 +71,13 @@ const Training = () => {
       });
 
       if (workout) {
+        setActiveWorkout(exercise);
+        setCurrentWorkoutId(workout.id);
+        
         toast({
           title: "Workout Started!",
-          description: `${exercise.name} session has begun. Good luck!`,
+          description: `${exercise.name} timer is now running. Stay focused!`,
         });
-
-        // Simulate workout completion after a few seconds for demo
-        setTimeout(async () => {
-          await completeWorkout(workout.id);
-          toast({
-            title: "Workout Completed!",
-            description: `Great job completing ${exercise.name}!`,
-          });
-        }, 3000);
       }
     } catch (error) {
       console.error('Error starting workout:', error);
@@ -90,6 +87,31 @@ const Training = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleWorkoutComplete = async () => {
+    if (currentWorkoutId) {
+      try {
+        await completeWorkout(currentWorkoutId);
+        toast({
+          title: "Workout Completed! 🎉",
+          description: `Congratulations! You've completed ${activeWorkout?.name}!`,
+        });
+      } catch (error) {
+        console.error('Error completing workout:', error);
+      }
+    }
+    setActiveWorkout(null);
+    setCurrentWorkoutId(null);
+  };
+
+  const handleWorkoutCancel = () => {
+    setActiveWorkout(null);
+    setCurrentWorkoutId(null);
+    toast({
+      title: "Workout Cancelled",
+      description: "Your workout session has been stopped.",
+    });
   };
 
   return (
@@ -152,6 +174,16 @@ const Training = () => {
       <button className="fixed bottom-24 right-6 bg-gradient-to-r from-electric to-neon p-4 rounded-full shadow-lg hover:scale-110 transition-all duration-200">
         <Zap size={24} className="text-black" />
       </button>
+
+      {/* Workout Timer Modal */}
+      {activeWorkout && (
+        <WorkoutTimer
+          workoutName={activeWorkout.name}
+          duration={activeWorkout.duration}
+          onComplete={handleWorkoutComplete}
+          onCancel={handleWorkoutCancel}
+        />
+      )}
     </div>
   );
 };
