@@ -1,9 +1,13 @@
 
 import React, { useState } from 'react';
-import { Play, Clock, Zap } from 'lucide-react';
+import { Play, Clock, Zap, CheckCircle } from 'lucide-react';
+import { useWorkouts } from '@/hooks/useWorkouts';
+import { useToast } from '@/hooks/use-toast';
 
 const Training = () => {
   const [activeTab, setActiveTab] = useState('running');
+  const { createWorkout, completeWorkout } = useWorkouts();
+  const { toast } = useToast();
 
   const tabs = [
     { id: 'leg-work', label: 'Leg Work' },
@@ -14,24 +18,32 @@ const Training = () => {
 
   const exercises = {
     'leg-work': [
-      { name: 'Squats', duration: '3 sets x 12 reps', difficulty: 'Medium', icon: '🦵' },
-      { name: 'Lunges', duration: '3 sets x 10 each leg', difficulty: 'Medium', icon: '🏃‍♂️' },
-      { name: 'Calf Raises', duration: '3 sets x 15 reps', difficulty: 'Easy', icon: '⬆️' },
+      { name: 'Squats', duration: 20, difficulty: 'Medium', icon: '🦵', type: 'Leg Work' },
+      { name: 'Lunges', duration: 15, difficulty: 'Medium', icon: '🏃‍♂️', type: 'Leg Work' },
+      { name: 'Calf Raises', duration: 10, difficulty: 'Easy', icon: '⬆️', type: 'Leg Work' },
+      { name: 'Bulgarian Split Squats', duration: 18, difficulty: 'Hard', icon: '🦵', type: 'Leg Work' },
+      { name: 'Wall Sits', duration: 12, difficulty: 'Medium', icon: '🧱', type: 'Leg Work' },
     ],
     'running': [
-      { name: 'Sprint Intervals', duration: '20 minutes', difficulty: 'Hard', icon: '⚡' },
-      { name: 'Long Distance', duration: '45 minutes', difficulty: 'Medium', icon: '🏃‍♂️' },
-      { name: 'Hill Sprints', duration: '15 minutes', difficulty: 'Hard', icon: '⛰️' },
+      { name: 'Sprint Intervals', duration: 20, difficulty: 'Hard', icon: '⚡', type: 'Running' },
+      { name: 'Long Distance', duration: 45, difficulty: 'Medium', icon: '🏃‍♂️', type: 'Running' },
+      { name: 'Hill Sprints', duration: 15, difficulty: 'Hard', icon: '⛰️', type: 'Running' },
+      { name: 'Tempo Run', duration: 30, difficulty: 'Medium', icon: '🏃‍♂️', type: 'Running' },
+      { name: 'Fartlek Training', duration: 25, difficulty: 'Hard', icon: '⚡', type: 'Running' },
     ],
     'shooting': [
-      { name: 'Target Practice', duration: '30 minutes', difficulty: 'Medium', icon: '🎯' },
-      { name: 'Moving Shots', duration: '25 minutes', difficulty: 'Hard', icon: '⚽' },
-      { name: 'Free Kicks', duration: '20 minutes', difficulty: 'Medium', icon: '🥅' },
+      { name: 'Target Practice', duration: 30, difficulty: 'Medium', icon: '🎯', type: 'Shooting' },
+      { name: 'Moving Shots', duration: 25, difficulty: 'Hard', icon: '⚽', type: 'Shooting' },
+      { name: 'Free Kicks', duration: 20, difficulty: 'Medium', icon: '🥅', type: 'Shooting' },
+      { name: 'Penalty Practice', duration: 15, difficulty: 'Easy', icon: '⚽', type: 'Shooting' },
+      { name: 'Volley Training', duration: 22, difficulty: 'Hard', icon: '🦶', type: 'Shooting' },
     ],
     'custom': [
-      { name: 'Agility Ladder', duration: '15 minutes', difficulty: 'Medium', icon: '🪜' },
-      { name: 'Cone Drills', duration: '20 minutes', difficulty: 'Easy', icon: '🚧' },
-      { name: 'Ball Juggling', duration: '10 minutes', difficulty: 'Easy', icon: '⚽' },
+      { name: 'Agility Ladder', duration: 15, difficulty: 'Medium', icon: '🪜', type: 'Agility' },
+      { name: 'Cone Drills', duration: 20, difficulty: 'Easy', icon: '🚧', type: 'Agility' },
+      { name: 'Ball Juggling', duration: 10, difficulty: 'Easy', icon: '⚽', type: 'Technical' },
+      { name: 'Plyometric Box Jumps', duration: 18, difficulty: 'Hard', icon: '📦', type: 'Strength' },
+      { name: 'Core Strengthening', duration: 25, difficulty: 'Medium', icon: '💪', type: 'Strength' },
     ],
   };
 
@@ -41,6 +53,42 @@ const Training = () => {
       case 'Medium': return 'text-yellow-400';
       case 'Hard': return 'text-red-400';
       default: return 'text-gray-400';
+    }
+  };
+
+  const handleStartWorkout = async (exercise: any) => {
+    try {
+      const workout = await createWorkout({
+        name: exercise.name,
+        type: exercise.type,
+        duration_minutes: exercise.duration,
+        difficulty: exercise.difficulty,
+        date: new Date().toISOString().split('T')[0],
+        completed: false,
+      });
+
+      if (workout) {
+        toast({
+          title: "Workout Started!",
+          description: `${exercise.name} session has begun. Good luck!`,
+        });
+
+        // Simulate workout completion after a few seconds for demo
+        setTimeout(async () => {
+          await completeWorkout(workout.id);
+          toast({
+            title: "Workout Completed!",
+            description: `Great job completing ${exercise.name}!`,
+          });
+        }, 3000);
+      }
+    } catch (error) {
+      console.error('Error starting workout:', error);
+      toast({
+        title: "Error",
+        description: "Failed to start workout. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -80,7 +128,7 @@ const Training = () => {
                   <h3 className="font-semibold text-lg">{exercise.name}</h3>
                   <div className="flex items-center space-x-2 mt-1">
                     <Clock size={14} className="text-gray-400" />
-                    <span className="text-sm text-gray-400">{exercise.duration}</span>
+                    <span className="text-sm text-gray-400">{exercise.duration} minutes</span>
                     <span className="text-xs px-2 py-1 rounded-full bg-white/10">
                       <span className={getDifficultyColor(exercise.difficulty)}>
                         {exercise.difficulty}
@@ -89,7 +137,10 @@ const Training = () => {
                   </div>
                 </div>
               </div>
-              <button className="bg-electric hover:bg-electric/80 text-black p-3 rounded-full transition-all duration-200 hover:scale-105">
+              <button 
+                onClick={() => handleStartWorkout(exercise)}
+                className="bg-electric hover:bg-electric/80 text-black p-3 rounded-full transition-all duration-200 hover:scale-105"
+              >
                 <Play size={20} fill="currentColor" />
               </button>
             </div>

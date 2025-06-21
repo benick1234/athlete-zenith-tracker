@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Droplets, Zap, Activity, Calendar, Sun, Cloud } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,6 +7,7 @@ import StatCard from './StatCard';
 import ProgressRing from './ProgressRing';
 import { Loader2 } from 'lucide-react';
 import { useDailyTracking } from '@/hooks/useDailyTracking';
+import { useWorkouts } from '@/hooks/useWorkouts';
 
 interface UserProfile {
   age: number | null;
@@ -20,6 +22,7 @@ const Dashboard = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const { trackingData, goals, loading: trackingLoading } = useDailyTracking();
+  const { workouts, loading: workoutsLoading } = useWorkouts();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -87,13 +90,25 @@ const Dashboard = () => {
     },
   ];
 
-  const recentWorkouts = [
-    { name: 'Sprint Training', duration: '45 min', type: 'Running', date: 'Today' },
-    { name: 'Ball Control', duration: '30 min', type: 'Technical', date: 'Yesterday' },
-    { name: 'Strength Training', duration: '60 min', type: 'Gym', date: '2 days ago' },
-  ];
+  // Format relative time for workout display
+  const getRelativeTime = (date: string) => {
+    const workoutDate = new Date(date);
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
 
-  if (loading || trackingLoading) {
+    if (workoutDate.toDateString() === today.toDateString()) {
+      return 'Today';
+    } else if (workoutDate.toDateString() === yesterday.toDateString()) {
+      return 'Yesterday';
+    } else {
+      const diffTime = Math.abs(today.getTime() - workoutDate.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return `${diffDays} days ago`;
+    }
+  };
+
+  if (loading || trackingLoading || workoutsLoading) {
     return (
       <div className="p-6 flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-electric" />
@@ -187,15 +202,25 @@ const Dashboard = () => {
           <button className="text-electric text-sm font-medium">View All</button>
         </div>
         <div className="space-y-3">
-          {recentWorkouts.map((workout, index) => (
-            <div key={index} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
-              <div>
-                <p className="font-medium">{workout.name}</p>
-                <p className="text-sm text-gray-400">{workout.type} • {workout.duration}</p>
+          {workouts.length > 0 ? (
+            workouts.slice(0, 3).map((workout) => (
+              <div key={workout.id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                <div>
+                  <p className="font-medium">{workout.name}</p>
+                  <p className="text-sm text-gray-400">
+                    {workout.type} • {workout.duration_minutes} min
+                    {workout.completed && <span className="text-green-400 ml-2">✓ Completed</span>}
+                  </p>
+                </div>
+                <span className="text-xs text-gray-500">{getRelativeTime(workout.date)}</span>
               </div>
-              <span className="text-xs text-gray-500">{workout.date}</span>
+            ))
+          ) : (
+            <div className="text-center py-8 text-gray-400">
+              <p>No workouts yet</p>
+              <p className="text-sm mt-1">Start your first training session!</p>
             </div>
-          ))}
+          )}
         </div>
       </div>
     </div>
