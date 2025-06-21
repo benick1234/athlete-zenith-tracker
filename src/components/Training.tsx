@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { Play, Clock, Zap, CheckCircle } from 'lucide-react';
 import { useWorkouts } from '@/hooks/useWorkouts';
 import { useToast } from '@/hooks/use-toast';
 import WorkoutTimer from './WorkoutTimer';
+import CustomTimer from './CustomTimer';
 
 const Training = () => {
   const [activeTab, setActiveTab] = useState('running');
@@ -16,6 +16,7 @@ const Training = () => {
     { id: 'leg-work', label: 'Leg Work' },
     { id: 'running', label: 'Running' },
     { id: 'shooting', label: 'Shooting' },
+    { id: 'custom-timer', label: 'Custom Timer' },
     { id: 'custom', label: 'Custom' },
   ];
 
@@ -139,36 +140,43 @@ const Training = () => {
         ))}
       </div>
 
-      {/* Exercise List */}
-      <div className="space-y-4">
-        {exercises[activeTab as keyof typeof exercises]?.map((exercise, index) => (
-          <div key={index} className="glass rounded-2xl p-6 hover:bg-white/10 transition-all duration-300 animate-fade-in">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="text-2xl">{exercise.icon}</div>
-                <div>
-                  <h3 className="font-semibold text-lg">{exercise.name}</h3>
-                  <div className="flex items-center space-x-2 mt-1">
-                    <Clock size={14} className="text-gray-400" />
-                    <span className="text-sm text-gray-400">{exercise.duration} minutes</span>
-                    <span className="text-xs px-2 py-1 rounded-full bg-white/10">
-                      <span className={getDifficultyColor(exercise.difficulty)}>
-                        {exercise.difficulty}
-                      </span>
-                    </span>
+      {/* Content */}
+      {activeTab === 'custom-timer' ? (
+        <CustomTimer />
+      ) : (
+        <>
+          {/* Exercise List */}
+          <div className="space-y-4">
+            {exercises[activeTab as keyof typeof exercises]?.map((exercise, index) => (
+              <div key={index} className="glass rounded-2xl p-6 hover:bg-white/10 transition-all duration-300 animate-fade-in">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="text-2xl">{exercise.icon}</div>
+                    <div>
+                      <h3 className="font-semibold text-lg">{exercise.name}</h3>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <Clock size={14} className="text-gray-400" />
+                        <span className="text-sm text-gray-400">{exercise.duration} minutes</span>
+                        <span className="text-xs px-2 py-1 rounded-full bg-white/10">
+                          <span className={getDifficultyColor(exercise.difficulty)}>
+                            {exercise.difficulty}
+                          </span>
+                        </span>
+                      </div>
+                    </div>
                   </div>
+                  <button 
+                    onClick={() => handleStartWorkout(exercise)}
+                    className="bg-electric hover:bg-electric/80 text-black p-3 rounded-full transition-all duration-200 hover:scale-105"
+                  >
+                    <Play size={20} fill="currentColor" />
+                  </button>
                 </div>
               </div>
-              <button 
-                onClick={() => handleStartWorkout(exercise)}
-                className="bg-electric hover:bg-electric/80 text-black p-3 rounded-full transition-all duration-200 hover:scale-105"
-              >
-                <Play size={20} fill="currentColor" />
-              </button>
-            </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </>
+      )}
 
       {/* Floating Action Button */}
       <button className="fixed bottom-24 right-6 bg-gradient-to-r from-electric to-neon p-4 rounded-full shadow-lg hover:scale-110 transition-all duration-200">
