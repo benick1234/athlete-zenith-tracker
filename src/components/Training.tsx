@@ -1,9 +1,12 @@
+
 import React, { useState } from 'react';
-import { Play, Clock, Zap, CheckCircle } from 'lucide-react';
+import { Zap } from 'lucide-react';
 import { useWorkouts } from '@/hooks/useWorkouts';
 import { useToast } from '@/hooks/use-toast';
 import WorkoutTimer from './WorkoutTimer';
 import CustomTimer from './CustomTimer';
+import TrainingTabs from './TrainingTabs';
+import ExerciseList from './ExerciseList';
 
 const Training = () => {
   const [activeTab, setActiveTab] = useState('running');
@@ -49,15 +52,6 @@ const Training = () => {
       { name: 'Plyometric Box Jumps', duration: 18, difficulty: 'Hard', icon: '📦', type: 'Strength' },
       { name: 'Core Strengthening', duration: 25, difficulty: 'Medium', icon: '💪', type: 'Strength' },
     ],
-  };
-
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'Easy': return 'text-neon';
-      case 'Medium': return 'text-yellow-400';
-      case 'Hard': return 'text-red-400';
-      default: return 'text-gray-400';
-    }
   };
 
   const handleStartWorkout = async (exercise: any) => {
@@ -124,58 +118,20 @@ const Training = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex space-x-2 mb-6 overflow-x-auto">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap ${
-              activeTab === tab.id
-                ? 'bg-electric text-black'
-                : 'bg-white/10 text-gray-400 hover:bg-white/20'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <TrainingTabs
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
 
       {/* Content */}
       {activeTab === 'custom-timer' ? (
         <CustomTimer />
       ) : (
-        <>
-          {/* Exercise List */}
-          <div className="space-y-4">
-            {exercises[activeTab as keyof typeof exercises]?.map((exercise, index) => (
-              <div key={index} className="glass rounded-2xl p-6 hover:bg-white/10 transition-all duration-300 animate-fade-in">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div className="text-2xl">{exercise.icon}</div>
-                    <div>
-                      <h3 className="font-semibold text-lg">{exercise.name}</h3>
-                      <div className="flex items-center space-x-2 mt-1">
-                        <Clock size={14} className="text-gray-400" />
-                        <span className="text-sm text-gray-400">{exercise.duration} minutes</span>
-                        <span className="text-xs px-2 py-1 rounded-full bg-white/10">
-                          <span className={getDifficultyColor(exercise.difficulty)}>
-                            {exercise.difficulty}
-                          </span>
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <button 
-                    onClick={() => handleStartWorkout(exercise)}
-                    className="bg-electric hover:bg-electric/80 text-black p-3 rounded-full transition-all duration-200 hover:scale-105"
-                  >
-                    <Play size={20} fill="currentColor" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </>
+        <ExerciseList
+          exercises={exercises[activeTab as keyof typeof exercises] || []}
+          onStartWorkout={handleStartWorkout}
+        />
       )}
 
       {/* Floating Action Button */}
