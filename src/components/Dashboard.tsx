@@ -52,7 +52,9 @@ const Dashboard = () => {
 
   // Get user name from email (part before @)
   const getUserName = (email: string) => {
-    return email.split('@')[0];
+    const name = email.split('@')[0];
+    // Capitalize first letter and format nicely
+    return name.charAt(0).toUpperCase() + name.slice(1);
   };
 
   // Get greeting based on time of day
