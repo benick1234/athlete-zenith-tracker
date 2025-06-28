@@ -1,6 +1,5 @@
-
 import React, { useEffect, useState } from 'react';
-import { Droplets, Zap, Activity, Calendar, Sun, Cloud } from 'lucide-react';
+import { Droplets, Zap, Activity, Calendar, Sun, Cloud, Heart, Play, BarChart3 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import StatCard from './StatCard';
@@ -8,6 +7,8 @@ import ProgressRing from './ProgressRing';
 import { Loader2 } from 'lucide-react';
 import { useDailyTracking } from '@/hooks/useDailyTracking';
 import { useWorkouts } from '@/hooks/useWorkouts';
+import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 interface UserProfile {
   age: number | null;
@@ -19,6 +20,7 @@ interface UserProfile {
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const { trackingData, goals, loading: trackingLoading } = useDailyTracking();
@@ -120,14 +122,57 @@ const Dashboard = () => {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Welcome Section */}
+      {/* Enhanced Welcome Section */}
       <div className="glass rounded-2xl p-6">
-        <h2 className="text-2xl font-bold mb-2">
-          {getGreeting()}, {user?.email ? getUserName(user.email) : 'Footballer'}!
+        <h2 className="text-3xl font-bold mb-3 text-electric">
+          Welcome back, {user?.email ? getUserName(user.email) : 'Footballer'}! 🚀
         </h2>
-        <p className="text-gray-400">Ready for today's training session?</p>
+        <p className="text-lg text-gray-300 mb-6">
+          {getGreeting()}! Ready to crush your goals today?
+        </p>
+        
+        {/* Friendly Questions Section */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-white mb-4">How can we help you today?</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Button 
+              onClick={() => navigate('/wellness')}
+              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white p-4 h-auto flex flex-col items-center space-y-2 rounded-xl transition-all duration-200 hover:scale-105"
+            >
+              <Heart className="w-6 h-6" />
+              <div className="text-center">
+                <p className="font-semibold">How are you feeling?</p>
+                <p className="text-xs opacity-80">Check your wellness</p>
+              </div>
+            </Button>
+            
+            <Button 
+              onClick={() => navigate('/training')}
+              className="bg-gradient-to-r from-electric to-neon hover:from-electric/80 hover:to-neon/80 text-black p-4 h-auto flex flex-col items-center space-y-2 rounded-xl transition-all duration-200 hover:scale-105"
+            >
+              <Play className="w-6 h-6" />
+              <div className="text-center">
+                <p className="font-semibold">Start Training</p>
+                <p className="text-xs opacity-80">Begin today's workout</p>
+              </div>
+            </Button>
+            
+            <Button 
+              onClick={() => navigate('/progress')}
+              className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white p-4 h-auto flex flex-col items-center space-y-2 rounded-xl transition-all duration-200 hover:scale-105"
+            >
+              <BarChart3 className="w-6 h-6" />
+              <div className="text-center">
+                <p className="font-semibold">View Progress</p>
+                <p className="text-xs opacity-80">Check your stats</p>
+              </div>
+            </Button>
+          </div>
+        </div>
+        
         {profile?.country && (
-          <p className="text-sm text-gray-500 mt-1">Training from {profile.country}</p>
+          <p className="text-sm text-gray-500 mt-4">Training from {profile.country}</p>
         )}
       </div>
 
@@ -201,7 +246,12 @@ const Dashboard = () => {
       <div className="glass rounded-2xl p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold">Recent Workouts</h3>
-          <button className="text-electric text-sm font-medium">View All</button>
+          <button 
+            onClick={() => navigate('/training')}
+            className="text-electric text-sm font-medium hover:text-electric/80 transition-colors"
+          >
+            View All
+          </button>
         </div>
         <div className="space-y-3">
           {workouts.length > 0 ? (
