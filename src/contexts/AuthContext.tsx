@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
@@ -26,6 +26,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const { speak } = useTextToSpeech();
+  const hasSpokenGreeting = useRef(false);
 
   // Get user name from email (part before @)
   const getUserName = (email: string) => {
@@ -46,13 +47,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        const previousUser = user;
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
 
         // Speak greeting when user signs in (not on initial load or token refresh)
-        if (event === 'SIGNED_IN' && session?.user && !previousUser) {
+        if (event === 'SIGNED_IN' && session?.user && !hasSpokenGreeting.current) {
+          hasSpokenGreeting.current = true;
           const userName = getUserName(session.user.email || 'Footballer');
           const greeting = getGreeting();
           const message = `Welcome back, ${userName}! ${greeting}! How are you feeling today?`;
@@ -61,6 +62,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setTimeout(() => {
             speak(message);
           }, 1000);
+        }
+
+        // Reset greeting flag when user signs out
+        if (event === 'SIGNED_OUT') {
+          hasSpokenGreeting.current = false;
         }
       }
     );
@@ -73,9 +79,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     return () => subscription.unsubscribe();
-  }, [speak, user]);
+  }, [speak]);
 
   const signOut = async () => {
+    hasSpokenGreeting.current = false;
     await supabase.auth.signOut();
   };
 
