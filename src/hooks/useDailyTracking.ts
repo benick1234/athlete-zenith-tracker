@@ -144,6 +144,24 @@ export const useDailyTracking = () => {
     }
   };
 
+  const addCalories = async (calories: number) => {
+    const newCalories = trackingData.calories_consumed + calories;
+    await updateTrackingData('calories_consumed', newCalories);
+  };
+
+  const addSteps = async (steps: number) => {
+    const newSteps = trackingData.steps_taken + steps;
+    await updateTrackingData('steps_taken', newSteps);
+  };
+
+  const resetCalories = async () => {
+    await updateTrackingData('calories_consumed', 0);
+  };
+
+  const resetSteps = async () => {
+    await updateTrackingData('steps_taken', 0);
+  };
+
   const resetWaterIntake = async () => {
     await updateTrackingData('water_intake', 0);
   };
@@ -158,6 +176,10 @@ export const useDailyTracking = () => {
     waterHistory,
     loading,
     updateTrackingData,
+    addCalories,
+    addSteps,
+    resetCalories,
+    resetSteps,
     resetWaterIntake,
     refreshData: fetchData,
   };

@@ -1,13 +1,33 @@
+
 import React, { useState } from 'react';
 import { Droplets, Utensils, Activity, Plus, RotateCcw } from 'lucide-react';
 import ProgressRing from './ProgressRing';
 import WaterHistoryTable from './WaterHistoryTable';
+import AddMealModal from './AddMealModal';
+import AddStepsModal from './AddStepsModal';
 import { useDailyTracking } from '@/hooks/useDailyTracking';
 import { Button } from './ui/button';
 
 const Wellness = () => {
   const [activeTab, setActiveTab] = useState('water');
-  const { trackingData, goals, waterHistory, updateTrackingData, resetWaterIntake } = useDailyTracking();
+  const [showAddMealModal, setShowAddMealModal] = useState(false);
+  const [showAddStepsModal, setShowAddStepsModal] = useState(false);
+  const [recentMeals, setRecentMeals] = useState([
+    { name: 'Chicken Salad', calories: 420, type: 'lunch', time: '2h ago' },
+    { name: 'Protein Shake', calories: 180, type: 'snack', time: '4h ago' },
+  ]);
+
+  const { 
+    trackingData, 
+    goals, 
+    waterHistory, 
+    updateTrackingData, 
+    addCalories,
+    addSteps,
+    resetWaterIntake,
+    resetCalories,
+    resetSteps
+  } = useDailyTracking();
 
   const tabs = [
     { id: 'water', label: 'Water', icon: Droplets },
@@ -22,14 +42,35 @@ const Wellness = () => {
     updateTrackingData('water_intake', newAmount);
   };
 
-  const handleResetWater = () => {
-    resetWaterIntake();
+  const handleAddMeal = (meal: { name: string; calories: number; type: string }) => {
+    addCalories(meal.calories);
+    setRecentMeals(prev => [
+      { ...meal, time: 'just now' },
+      ...prev.slice(0, 4) // Keep only the 5 most recent meals
+    ]);
   };
 
-  const macros = {
-    carbs: { value: 180, target: 250, color: 'electric' },
-    protein: { value: 120, target: 150, color: 'neon' },
-    fat: { value: 65, target: 80, color: 'yellow-400' },
+  const handleAddSteps = (steps: number) => {
+    addSteps(steps);
+  };
+
+  // Calculate estimated macros based on calories (rough estimation)
+  const estimatedMacros = {
+    carbs: { 
+      value: Math.round(trackingData.calories_consumed * 0.45 / 4), // 45% of calories from carbs
+      target: Math.round(goals.daily_calorie_goal * 0.45 / 4), 
+      color: 'electric' 
+    },
+    protein: { 
+      value: Math.round(trackingData.calories_consumed * 0.25 / 4), // 25% of calories from protein
+      target: Math.round(goals.daily_calorie_goal * 0.25 / 4), 
+      color: 'neon' 
+    },
+    fat: { 
+      value: Math.round(trackingData.calories_consumed * 0.30 / 9), // 30% of calories from fat
+      target: Math.round(goals.daily_calorie_goal * 0.30 / 9), 
+      color: 'yellow-400' 
+    },
   };
 
   const renderWaterTab = () => (
@@ -55,7 +96,7 @@ const Wellness = () => {
         <div className="flex justify-between items-center mb-4">
           <h4 className="font-semibold">Quick Add</h4>
           <Button
-            onClick={handleResetWater}
+            onClick={resetWaterIntake}
             variant="outline"
             size="sm"
             className="flex items-center space-x-2 bg-red-500/20 hover:bg-red-500/30 border-red-500/30 text-red-400"
@@ -87,7 +128,18 @@ const Wellness = () => {
     <div className="space-y-6">
       {/* Calories Progress */}
       <div className="glass rounded-2xl p-6">
-        <h4 className="font-semibold mb-4">Today's Calories</h4>
+        <div className="flex justify-between items-center mb-4">
+          <h4 className="font-semibold">Today's Calories</h4>
+          <Button
+            onClick={resetCalories}
+            variant="outline"
+            size="sm"
+            className="flex items-center space-x-2 bg-red-500/20 hover:bg-red-500/30 border-red-500/30 text-red-400"
+          >
+            <RotateCcw size={16} />
+            <span>Reset</span>
+          </Button>
+        </div>
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-3xl font-bold">{trackingData.calories_consumed}</p>
@@ -99,13 +151,21 @@ const Wellness = () => {
             size={80} 
           />
         </div>
+        <Button
+          onClick={() => setShowAddMealModal(true)}
+          className="w-full bg-neon/20 hover:bg-neon/30 border border-neon/30 text-neon"
+          variant="outline"
+        >
+          <Plus size={16} className="mr-2" />
+          Add Meal
+        </Button>
       </div>
 
       {/* Macros */}
       <div className="glass rounded-2xl p-6">
-        <h4 className="font-semibold mb-4">Today's Macros</h4>
+        <h4 className="font-semibold mb-4">Estimated Macros</h4>
         <div className="space-y-4">
-          {Object.entries(macros).map(([key, macro]) => (
+          {Object.entries(estimatedMacros).map(([key, macro]) => (
             <div key={key} className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className={`w-3 h-3 rounded-full bg-${macro.color}`}></div>
@@ -124,20 +184,15 @@ const Wellness = () => {
       <div className="glass rounded-2xl p-6">
         <h4 className="font-semibold mb-4">Recent Meals</h4>
         <div className="space-y-3">
-          <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
-            <div>
-              <p className="font-medium">Chicken Salad</p>
-              <p className="text-sm text-gray-400">Lunch • 420 cal</p>
+          {recentMeals.map((meal, index) => (
+            <div key={index} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+              <div>
+                <p className="font-medium">{meal.name}</p>
+                <p className="text-sm text-gray-400 capitalize">{meal.type} • {meal.calories} cal</p>
+              </div>
+              <span className="text-neon text-sm">{meal.time}</span>
             </div>
-            <span className="text-neon text-sm">2h ago</span>
-          </div>
-          <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
-            <div>
-              <p className="font-medium">Protein Shake</p>
-              <p className="text-sm text-gray-400">Snack • 180 cal</p>
-            </div>
-            <span className="text-neon text-sm">4h ago</span>
-          </div>
+          ))}
         </div>
       </div>
     </div>
@@ -149,9 +204,20 @@ const Wellness = () => {
       <div className="glass rounded-2xl p-6">
         <div className="flex items-center justify-between mb-4">
           <h4 className="font-semibold">Steps Today</h4>
-          <Activity className="text-electric" size={20} />
+          <div className="flex space-x-2">
+            <Button
+              onClick={resetSteps}
+              variant="outline"
+              size="sm"
+              className="flex items-center space-x-2 bg-red-500/20 hover:bg-red-500/30 border-red-500/30 text-red-400"
+            >
+              <RotateCcw size={16} />
+              <span>Reset</span>
+            </Button>
+            <Activity className="text-electric" size={20} />
+          </div>
         </div>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-3xl font-bold">{trackingData.steps_taken.toLocaleString()}</p>
             <p className="text-gray-400 text-sm">of {goals.daily_steps_goal.toLocaleString()} goal</p>
@@ -162,6 +228,14 @@ const Wellness = () => {
             size={80} 
           />
         </div>
+        <Button
+          onClick={() => setShowAddStepsModal(true)}
+          className="w-full bg-electric/20 hover:bg-electric/30 border border-electric/30 text-electric"
+          variant="outline"
+        >
+          <Plus size={16} className="mr-2" />
+          Add Steps
+        </Button>
       </div>
 
       {/* Calories Burned */}
@@ -170,11 +244,13 @@ const Wellness = () => {
         <div className="space-y-3">
           <div className="flex justify-between">
             <span>Active Calories</span>
-            <span className="font-semibold text-neon">420 cal</span>
+            <span className="font-semibold text-neon">
+              {Math.round(trackingData.steps_taken * 0.04)} cal
+            </span>
           </div>
           <div className="flex justify-between">
-            <span>Total Calories</span>
-            <span className="font-semibold">{trackingData.calories_consumed} cal</span>
+            <span>Steps Taken</span>
+            <span className="font-semibold">{trackingData.steps_taken.toLocaleString()}</span>
           </div>
         </div>
       </div>
@@ -213,9 +289,28 @@ const Wellness = () => {
       {activeTab === 'activity' && renderActivityTab()}
 
       {/* Floating Action Button */}
-      <button className="fixed bottom-24 right-6 bg-gradient-to-r from-electric to-neon p-4 rounded-full shadow-lg hover:scale-110 transition-all duration-200">
+      <button 
+        onClick={() => {
+          if (activeTab === 'nutrition') setShowAddMealModal(true);
+          else if (activeTab === 'activity') setShowAddStepsModal(true);
+        }}
+        className="fixed bottom-24 right-6 bg-gradient-to-r from-electric to-neon p-4 rounded-full shadow-lg hover:scale-110 transition-all duration-200"
+      >
         <Plus size={24} className="text-black" />
       </button>
+
+      {/* Modals */}
+      <AddMealModal
+        isOpen={showAddMealModal}
+        onClose={() => setShowAddMealModal(false)}
+        onAddMeal={handleAddMeal}
+      />
+      
+      <AddStepsModal
+        isOpen={showAddStepsModal}
+        onClose={() => setShowAddStepsModal(false)}
+        onAddSteps={handleAddSteps}
+      />
     </div>
   );
 };
