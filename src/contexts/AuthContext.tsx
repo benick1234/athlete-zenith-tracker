@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,6 +26,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const { speak } = useTextToSpeech();
   const hasSpokenGreeting = useRef(false);
+  const hasRequestedLocation = useRef(false);
 
   // Get user name from email (part before @)
   const getUserName = (email: string) => {
@@ -43,6 +43,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return 'Good evening';
   };
 
+  // Request location permission
+  const requestLocationPermission = () => {
+    if (hasRequestedLocation.current || !navigator.geolocation) return;
+    
+    hasRequestedLocation.current = true;
+    
+    // Request location permission for weather updates
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        console.log('Location permission granted for weather updates');
+      },
+      (error) => {
+        console.log('Location permission denied:', error.message);
+      },
+      { enableHighAccuracy: true, timeout: 5000 }
+    );
+  };
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -51,22 +69,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
         setLoading(false);
 
-        // Speak greeting when user signs in (not on initial load or token refresh)
+        // Speak greeting and request location when user signs in
         if (event === 'SIGNED_IN' && session?.user && !hasSpokenGreeting.current) {
           hasSpokenGreeting.current = true;
           const userName = getUserName(session.user.email || 'Footballer');
           const greeting = getGreeting();
           const message = `Welcome back, ${userName}! ${greeting}! How are you feeling today?`;
           
-          // Delay the speech slightly to ensure the UI has loaded
+          // Delay the speech and location request slightly
           setTimeout(() => {
             speak(message);
+            requestLocationPermission();
           }, 1000);
         }
 
-        // Reset greeting flag when user signs out
+        // Reset flags when user signs out
         if (event === 'SIGNED_OUT') {
           hasSpokenGreeting.current = false;
+          hasRequestedLocation.current = false;
         }
       }
     );

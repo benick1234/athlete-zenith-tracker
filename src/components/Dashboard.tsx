@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Droplets, Zap, Activity, Calendar, Sun, Cloud, Heart, Play, BarChart3 } from 'lucide-react';
+import { Droplets, Zap, Activity, Calendar, Heart, Play, BarChart3 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import StatCard from './StatCard';
-import ProgressRing from './ProgressRing';
+import WeatherCard from './WeatherCard';
 import { Loader2 } from 'lucide-react';
 import { useDailyTracking } from '@/hooks/useDailyTracking';
 import { useWorkouts } from '@/hooks/useWorkouts';
@@ -183,26 +183,8 @@ const Dashboard = () => {
         ))}
       </div>
 
-      {/* Weather Card */}
-      <div className="glass rounded-2xl p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Weather</h3>
-          <div className="flex items-center space-x-2 text-electric">
-            <Sun size={20} />
-            <span className="text-sm">Perfect for outdoor training</span>
-          </div>
-        </div>
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-3xl font-bold">22°C</p>
-            <p className="text-gray-400 text-sm">Sunny, light breeze</p>
-          </div>
-          <div className="text-right">
-            <p className="text-sm text-gray-400">Humidity</p>
-            <p className="font-semibold">65%</p>
-          </div>
-        </div>
-      </div>
+      {/* Real-time Weather Card */}
+      <WeatherCard />
 
       {/* Player Info Card */}
       {profile && (profile.age || profile.height) && (
