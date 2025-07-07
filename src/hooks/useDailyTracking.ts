@@ -15,6 +15,13 @@ interface UserGoals {
   daily_steps_goal: number;
 }
 
+interface WaterIntakeHistory {
+  id: string;
+  date: string;
+  water_intake: number;
+  created_at: string;
+}
+
 export const useDailyTracking = () => {
   const { user } = useAuth();
   const [trackingData, setTrackingData] = useState<DailyTrackingData>({
@@ -27,6 +34,7 @@ export const useDailyTracking = () => {
     daily_calorie_goal: 2200,
     daily_steps_goal: 10000,
   });
+  const [waterHistory, setWaterHistory] = useState<WaterIntakeHistory[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
@@ -61,6 +69,22 @@ export const useDailyTracking = () => {
       } else if (goalsResponse) {
         setGoals(goalsResponse);
       }
+
+      // Fetch water intake history (last 7 days)
+      const { data: historyResponse, error: historyError } = await supabase
+        .from('daily_tracking')
+        .select('id, date, water_intake, created_at')
+        .eq('user_id', user.id)
+        .not('water_intake', 'is', null)
+        .gte('water_intake', 1)
+        .order('date', { ascending: false })
+        .limit(7);
+
+      if (historyError) {
+        console.error('Error fetching water history:', historyError);
+      } else if (historyResponse) {
+        setWaterHistory(historyResponse);
+      }
     } catch (error) {
       console.error('Error:', error);
     } finally {
@@ -74,22 +98,54 @@ export const useDailyTracking = () => {
     try {
       const today = new Date().toISOString().split('T')[0];
       
-      const { error } = await supabase
+      // First try to update existing record
+      const { data: existingData } = await supabase
         .from('daily_tracking')
-        .upsert({
-          user_id: user.id,
-          date: today,
-          [field]: value,
-        });
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('date', today)
+        .maybeSingle();
 
-      if (error) {
-        console.error('Error updating tracking data:', error);
+      if (existingData) {
+        // Update existing record
+        const { error } = await supabase
+          .from('daily_tracking')
+          .update({ [field]: value })
+          .eq('id', existingData.id);
+
+        if (error) {
+          console.error('Error updating tracking data:', error);
+          return;
+        }
       } else {
-        setTrackingData(prev => ({ ...prev, [field]: value }));
+        // Insert new record
+        const { error } = await supabase
+          .from('daily_tracking')
+          .insert({
+            user_id: user.id,
+            date: today,
+            [field]: value,
+          });
+
+        if (error) {
+          console.error('Error inserting tracking data:', error);
+          return;
+        }
+      }
+
+      setTrackingData(prev => ({ ...prev, [field]: value }));
+      
+      // Refresh history if water intake was updated
+      if (field === 'water_intake') {
+        fetchData();
       }
     } catch (error) {
       console.error('Error:', error);
     }
+  };
+
+  const resetWaterIntake = async () => {
+    await updateTrackingData('water_intake', 0);
   };
 
   useEffect(() => {
@@ -99,8 +155,10 @@ export const useDailyTracking = () => {
   return {
     trackingData,
     goals,
+    waterHistory,
     loading,
     updateTrackingData,
+    resetWaterIntake,
     refreshData: fetchData,
   };
 };

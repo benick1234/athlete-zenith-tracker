@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { Droplets, Utensils, Activity, Plus } from 'lucide-react';
+import { Droplets, Utensils, Activity, Plus, RotateCcw } from 'lucide-react';
 import ProgressRing from './ProgressRing';
+import WaterHistoryTable from './WaterHistoryTable';
 import { useDailyTracking } from '@/hooks/useDailyTracking';
+import { Button } from './ui/button';
 
 const Wellness = () => {
   const [activeTab, setActiveTab] = useState('water');
-  const { trackingData, goals, updateTrackingData } = useDailyTracking();
+  const { trackingData, goals, waterHistory, updateTrackingData, resetWaterIntake } = useDailyTracking();
 
   const tabs = [
     { id: 'water', label: 'Water', icon: Droplets },
@@ -18,6 +20,10 @@ const Wellness = () => {
   const handleAddWater = (amount: number) => {
     const newAmount = Math.min(trackingData.water_intake + amount, goals.daily_water_goal);
     updateTrackingData('water_intake', newAmount);
+  };
+
+  const handleResetWater = () => {
+    resetWaterIntake();
   };
 
   const macros = {
@@ -39,11 +45,25 @@ const Wellness = () => {
         </div>
         <h3 className="text-2xl font-bold mb-2">{trackingData.water_intake}ml</h3>
         <p className="text-gray-400">of {goals.daily_water_goal}ml daily goal</p>
+        <p className="text-neon font-semibold mt-2">
+          {(trackingData.water_intake / 1000).toFixed(1)}L consumed today
+        </p>
       </div>
 
       {/* Quick Add Buttons */}
       <div className="glass rounded-2xl p-6">
-        <h4 className="font-semibold mb-4">Quick Add</h4>
+        <div className="flex justify-between items-center mb-4">
+          <h4 className="font-semibold">Quick Add</h4>
+          <Button
+            onClick={handleResetWater}
+            variant="outline"
+            size="sm"
+            className="flex items-center space-x-2 bg-red-500/20 hover:bg-red-500/30 border-red-500/30 text-red-400"
+          >
+            <RotateCcw size={16} />
+            <span>Reset</span>
+          </Button>
+        </div>
         <div className="grid grid-cols-2 gap-3">
           {quickAddAmounts.map((amount) => (
             <button
@@ -57,6 +77,9 @@ const Wellness = () => {
           ))}
         </div>
       </div>
+
+      {/* Water History Table */}
+      <WaterHistoryTable history={waterHistory} />
     </div>
   );
 
