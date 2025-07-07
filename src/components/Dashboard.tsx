@@ -1,11 +1,9 @@
-
 import React, { useEffect, useState } from 'react';
 import { Droplets, Zap, Activity, Calendar, Sun, Cloud, Heart, Play, BarChart3 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import StatCard from './StatCard';
 import ProgressRing from './ProgressRing';
-import LocationSharing from './LocationSharing';
 import { Loader2 } from 'lucide-react';
 import { useDailyTracking } from '@/hooks/useDailyTracking';
 import { useWorkouts } from '@/hooks/useWorkouts';
@@ -184,9 +182,6 @@ const Dashboard = () => {
           <StatCard key={index} {...stat} />
         ))}
       </div>
-
-      {/* Location Sharing */}
-      <LocationSharing />
 
       {/* Weather Card */}
       <div className="glass rounded-2xl p-6">
