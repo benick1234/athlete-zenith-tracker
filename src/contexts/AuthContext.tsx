@@ -46,7 +46,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     hasRequestedLocation.current = true;
     
-    // Request location permission for weather updates
+    // Request location permission for weather updates and location-based features
     navigator.geolocation.getCurrentPosition(
       (position) => {
         console.log('Location permission granted for weather updates');
