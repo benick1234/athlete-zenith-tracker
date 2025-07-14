@@ -11,6 +11,7 @@ import Training from "./components/Training";
 import Wellness from "./components/Wellness";
 import Progress from "./components/Progress";
 import Profile from "./components/Profile";
+import PresentationGenerator from "./components/PresentationGenerator";
 import AuthPage from "./components/AuthPage";
 import OnboardingPage from "./components/OnboardingPage";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -74,6 +75,16 @@ const App = () => (
                 <ProtectedRoute>
                   <Layout>
                     <Profile />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/presentation"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <PresentationGenerator />
                   </Layout>
                 </ProtectedRoute>
               }
