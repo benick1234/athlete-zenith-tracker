@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 
 interface AuthContextType {
   user: User | null;
@@ -24,8 +23,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const { speak } = useTextToSpeech();
-  const hasSpokenGreeting = useRef(false);
   const hasRequestedLocation = useRef(false);
 
   // Get user name from email (part before @)
@@ -69,23 +66,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
         setLoading(false);
 
-        // Speak greeting and request location when user signs in
-        if (event === 'SIGNED_IN' && session?.user && !hasSpokenGreeting.current) {
-          hasSpokenGreeting.current = true;
-          const userName = getUserName(session.user.email || 'Footballer');
-          const greeting = getGreeting();
-          const message = `Welcome back, ${userName}! ${greeting}! How are you feeling today?`;
-          
-          // Delay the speech and location request slightly
+        // Request location when user signs in
+        if (event === 'SIGNED_IN' && session?.user && !hasRequestedLocation.current) {
           setTimeout(() => {
-            speak(message);
             requestLocationPermission();
           }, 1000);
         }
 
         // Reset flags when user signs out
         if (event === 'SIGNED_OUT') {
-          hasSpokenGreeting.current = false;
           hasRequestedLocation.current = false;
         }
       }
@@ -99,10 +88,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     return () => subscription.unsubscribe();
-  }, [speak]);
+  }, []);
 
   const signOut = async () => {
-    hasSpokenGreeting.current = false;
     await supabase.auth.signOut();
   };
 
